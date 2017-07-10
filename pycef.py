@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import re
+from __future__ import print_function
+
 
 def parse(str_input):
     """
@@ -15,7 +17,7 @@ def parse(str_input):
     # data.  Once we do this, it's easier to use other regexes to parse each
     # part.
     header_re = r'(.*(?<!\\)\|){,7}(.*)'
-    
+
     res = re.search(header_re, str_input)
     if res:
         header = res.group(1)
@@ -53,15 +55,15 @@ def parse(str_input):
         for i in spl:
             # Split the tuples and put them into the dictionary
             values[i[0]] = i[1]
-            
+
         # Process custom field labels
-        for key in values.keys():
-            # If the key string ends with Label, replace it in the appropriate 
+        for key in list(values.keys()):
+            # If the key string ends with Label, replace it in the appropriate
             # custom field
             if key[-5:] == "Label":
                 customlabel = key[:-5]
                 # Find the corresponding customfield and replace with the label
-                for customfield in values.keys():
+                for customfield in list(values.keys()):
                     if customfield == customlabel:
                         values[values[key]] = values[customfield]
                         del values[customfield]
@@ -70,27 +72,29 @@ def parse(str_input):
     # Now we're done!
     return values
 
-###### Main ######
+
+# ##### Main ######
 if __name__ == "__main__":
 
     import sys
     import json
-    
+
     if len(sys.argv) != 2:
-        print "USAGE: %s <file>" % sys.argv[0]
+        print("USAGE: %s <file>" % sys.argv[0])
         sys.exit(-1)
 
     file = sys.argv[1]
 
     for line in open(file, "r").readlines():
         line = line.rstrip('\n')
-        
+
         # Read the file, and parse each line of CEF into a separate JSON
         # document to stdout
         try:
             values = parse(line)
         except (TypeError, ValueError) as e:
-            sys.stderr.write('{0} parsing line:\n{1}\n'.format(e.message, line))
+            sys.stderr.write('{0} parsing line:\n{1}\n'.format(e.message,
+                                                               line))
         else:
             if values:
-                print json.dumps(values)
+                print(json.dumps(values))
